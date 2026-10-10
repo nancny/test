@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>古今人物性格匹配测试</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-0: #f4f6ff;
+    --bg-1: #eef2ff;
+    --card: #ffffff;
+    --ink: #1f2440;
+    --ink-2: #4a4f6c;
+    --muted: #7a7f95;
+    --line: #e5e9f5;
+    --brand: #6c5ce7;
+    --brand-2: #8a7be8;
+    --brand-soft: #eef0ff;
+    --accent: #2563eb;
+    --ok: #34d399;
+    --warn: #f59e0b;
+    --shadow: 0 20px 60px rgba(71, 80, 140, 0.18);
+    --shadow-soft: 0 10px 30px rgba(71, 80, 140, 0.12);
+    --radius: 24px;
+  }
+
+  body {
+    min-height: 100vh;
+    font-family: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 12% 10%, rgba(140, 120, 255, 0.18), transparent 28%),
+      radial-gradient(circle at 88% 18%, rgba(37, 99, 235, 0.12), transparent 32%),
+      linear-gradient(180deg, var(--bg-0), var(--bg-1));
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px 14px 32px;
+    font-size: 14px;
+  }
+
+  .app {
+    width: min(960px, 100%);
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--ink);
+    font-size: 15px;
+  }
+
+  .brand-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--brand), var(--accent));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    box-shadow: var(--shadow-soft);
+    font-size:14px;
+  }
+
+  .mini-status {
+    font-size: 12px;
+    color: var(--muted);
+    background: rgba(255,255,255,0.7);
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+  }
+
+  .page { display: none; animation: fadeIn 0.35s ease both; }
+  .page.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 性别选择弹窗 */
+  .gender-mask {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .gender-mask.show { display: flex; }
+  .gender-box {
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px 24px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .gender-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 24px;
+  }
+  .gender-btn-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .gender-btn {
+    padding: 14px 0;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: #f9faff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .gender-btn:hover {
+    background: var(--brand-soft);
+    border-color: var(--brand);
+    color: var(--brand);
+  }
+
+  /* 密码页 */
+  .pwd-card {
+    background: linear-gradient(180deg, #ffffff 0%, #fafbff 100%);
+    border: 1px solid rgba(140, 130, 220, 0.18);
+    border-radius: var(--radius);
+    padding: 32px 24px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pwd-card::before {
+    content: "";
+    position: absolute;
+    left: -100px;
+    top: -100px;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(140,120,255,0.22), transparent 70%);
+    pointer-events: none;
+  }
+
+  .pwd-card::after {
+    content: "";
+    position: absolute;
+    right: -120px;
+    bottom: -120px;
+    width: 240px;
+    height: 240px;
+    background: radial-gradient(circle, rgba(37,99,235,0.18), transparent 70%);
+    pointer-events: none;
+  }
+
+  .pwd-inner { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; }
+
+  .pwd-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--brand);
+    background: var(--brand-soft);
+    padding: 6px 12px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+  }
+
+  .pwd-eyebrow .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--brand);
+    box-shadow: 0 0 0 3px rgba(140,120,255,0.18);
+  }
+
+  .pwd-title {
+    font-size: 26px;
+    line-height: 1.2;
+    font-weight: 800;
+    margin-bottom: 10px;
+    letter-spacing: -0.3px;
+  }
+
+  .pwd-title .accent {
+    background: linear-gradient(90deg, var(--brand), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .pwd-sub {
+    color: var(--ink-2);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .pwd-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 8px 12px;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .pwd-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    flex-shrink: 0;
+    font-size:14px;
+  }
+
+  .pwd-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 22px;
+    letter-spacing: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    padding: 4px 2px;
+  }
+
+  .pwd-input::placeholder {
+    color: #c7cbe0;
+    letter-spacing: 10px;
+    font-weight: 500;
+  }
+
+  .pwd-hint {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .pwd-hint .err { color: #ef4444; opacity: 0; transition: 0.2s; }
+  .pwd-hint .err.show { opacity: 1; }
+
+  .btn {
+    appearance: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+
+  .btn-primary {
+    width: 100%;
+    margin-top: 18px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--brand), var(--accent));
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 1px;
+    box-shadow: 0 12px 24px rgba(108, 92, 231, 0.35);
+  }
+
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 14px 30px rgba(108, 92, 231, 0.42); }
+  .btn-primary:active { transform: translateY(0); }
+
+  /* 首页 */
+  .intro-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 26px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+  }
+
+  .intro-header {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  .intro-eyebrow {
+    color: var(--brand);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+
+  .intro-title {
+    font-size: 24px;
+    line-height: 1.25;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+  }
+
+  .intro-title em {
+    font-style: normal;
+    background: linear-gradient(90deg, var(--brand), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .intro-lead {
+    color: var(--ink-2);
+    line-height: 1.7;
+    font-size: 14px;
+    margin-bottom: 18px;
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .feature-item {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px;
+    background: linear-gradient(180deg, #fbfbff, #ffffff);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .feature-item:hover { transform: translateY(-2px); border-color: #d6d8f0; }
+
+  .feature-num {
+    font-size: 11px;
+    color: var(--brand);
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  .feature-title {
+    font-size: 15px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  .feature-desc {
+    color: var(--ink-2);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .info-strip {
+    background: linear-gradient(90deg, rgba(108,92,231,0.12), rgba(37,99,235,0.08));
+    border-left: 4px solid var(--brand);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+  }
+
+  .info-strip p {
+    color: var(--ink-2);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .btn-primary-lg,
+  .btn-ghost-lg {
+    height: 48px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    padding: 0 14px;
+  }
+
+  .btn-ghost-lg {
+    background: #fff;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+
+  .btn-ghost-lg:hover { border-color: #cfd2ee; background: #f9faff; }
+
+  /* 匹配说明浮层 */
+  .modal-mask {
+    position: fixed;
+    inset: 0;
+    background: rgba(18, 22, 48, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 16px;
+  }
+
+  .modal-mask.show { display: flex; }
+
+  .modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 24px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: var(--shadow);
+    animation: popIn 0.25s ease both;
+  }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .modal h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .modal p {
+    color: var(--ink-2);
+    line-height: 1.7;
+    font-size: 14px;
+  }
+
+  .modal-progress {
+    margin-top: 14px;
+    height: 6px;
+    background: var(--brand-soft);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .modal-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--brand), var(--accent));
+    transition: width 4s linear;
+  }
+
+  /* 答题页 */
+  .quiz-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+  }
+
+  .quiz-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .quiz-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--brand-soft);
+    color: var(--brand);
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  .quiz-index {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .progress {
+    width: 100%;
+    height: 8px;
+    background: #f1f3fb;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 22px;
+  }
+
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--brand), var(--accent));
+    border-radius: 999px;
+    transition: width 0.4s ease;
+    position: relative;
+  }
+
+  .progress-bar::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: -3px;
+    bottom: -3px;
+    width: 14px;
+    background: #fff;
+    border: 3px solid var(--brand);
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(108,92,231,0.12);
+  }
+
+  .question {
+    font-size: 18px;
+    line-height: 1.45;
+    font-weight: 800;
+    margin-bottom: 20px;
+    letter-spacing: -0.2px;
+  }
+
+  .options { display: grid; gap: 12px; }
+
+  .option {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 16px;
+    background: #fbfbff;
+    cursor: pointer;
+    transition: transform 0.18s ease, border-color 0.2s ease, background 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .option::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: transparent;
+    transition: background 0.2s ease;
+  }
+
+  .option:hover { transform: translateY(-1px); border-color: #cfd2ee; background: #f5f6ff; }
+
+  .option.selected {
+    background: linear-gradient(180deg, #eef0ff, #ffffff);
+    border-color: var(--brand);
+    box-shadow: 0 8px 18px rgba(108,92,231,0.18);
+  }
+
+  .option.selected::before { background: var(--brand); }
+
+  .option-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  .quiz-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 22px;
+    gap: 12px;
+  }
+
+  .btn-nav {
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--ink-2);
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .btn-nav:hover { border-color: #cfd2ee; }
+  .btn-nav:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-submit {
+    background: linear-gradient(135deg, var(--brand), var(--accent));
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 14px;
+    box-shadow: 0 10px 20px rgba(108,92,231,0.3);
+  }
+
+  .btn-submit:hover { transform: translateY(-1px); }
+
+  /* 结果页 */
+  .result-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+    margin-bottom: 14px;
+  }
+
+  .result-hero {
+    text-align: center;
+    padding: 8px 8px 16px;
+  }
+
+  .match-ring {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    margin: 0 auto 14px;
+    background: conic-gradient(var(--brand), var(--accent), var(--brand));
+    display: grid;
+    place-items: center;
+    position: relative;
+  }
+
+  .match-ring-inner {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--brand);
+  }
+
+  .result-name {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    margin-bottom: 4px;
+  }
+
+  .result-sub {
+    color: var(--ink-2);
+    margin-bottom: 14px;
+    font-size: 14px;
+  }
+
+  .result-tags {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .result-tag {
+    background: var(--brand-soft);
+    color: var(--brand);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .result-quote {
+    background: linear-gradient(135deg, #f4f6ff, #eef0ff);
+    border-left: 4px solid var(--brand);
+    border-radius: 14px;
+    padding: 14px;
+    text-align: left;
+  }
+
+  .result-quote-label {
+    font-size: 12px;
+    color: var(--brand);
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+
+  .result-quote-text {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::before {
+    content: "";
+    width: 5px;
+    height: 18px;
+    background: linear-gradient(180deg, var(--brand), var(--accent));
+    border-radius: 3px;
+  }
+
+  .result-text {
+    color: var(--ink-2);
+    line-height: 1.7;
+    font-size: 14px;
+  }
+
+  .ability-list { display: grid; gap: 12px; }
+
+  .ability-item {
+    display: grid;
+    grid-template-columns: 76px 1fr 36px;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ability-name {
+    font-size: 13px;
+    color: var(--ink-2);
+    font-weight: 700;
+  }
+
+  .ability-track {
+    height: 8px;
+    background: #f1f3fb;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .ability-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--brand), var(--accent));
+    border-radius: 999px;
+    width: 0%;
+    transition: width 0.8s ease;
+  }
+
+  .ability-score {
+    text-align: right;
+    font-weight: 800;
+    color: var(--ink);
+    font-size:13px;
+  }
+
+  .card-list { display: grid; gap: 12px; }
+
+  .side-card {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px;
+    background: linear-gradient(180deg, #fbfbff, #ffffff);
+  }
+
+  .side-card h4 {
+    font-size: 15px;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+
+  .side-card p {
+    color: var(--ink-2);
+    line-height: 1.6;
+    font-size: 13px;
+  }
+
+  .result-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .btn-outline-primary,
+  .btn-primary-result {
+    height: 48px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    padding: 0 14px;
+  }
+
+  .btn-outline-primary {
+    border: 1px solid var(--brand);
+    background: #fff;
+    color: var(--brand);
+  }
+
+  .btn-outline-primary:hover { background: var(--brand-soft); }
+
+  .fun-notice {
+    margin-top: 14px;
+    background: linear-gradient(90deg, rgba(108,92,231,0.1), rgba(37,99,235,0.06));
+    border: 1px solid rgba(140,130,220,0.25);
+    border-radius: 14px;
+    padding: 12px 14px;
+    color: var(--ink-2);
+    font-size: 12px;
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 32px;
+    transform: translateX(-50%);
+    background: rgba(31,36,64,0.92);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    display: none;
+    z-index: 60;
+  }
+
+  .toast.show { display: block; }
+
+  @media (max-width: 640px) {
+    .intro-header { grid-template-columns: 1fr; }
+    .feature-grid { grid-template-columns: 1fr; }
+    .action-row { grid-template-columns: 1fr; }
+    .result-actions { grid-template-columns: 1fr; }
+    .pwd-title { font-size: 24px; }
+    .question { font-size:17px; }
+  }
+</style>
+<base target="_blank">
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">✦</div>
+        <span>古今人物性格档案</span>
+      </div>
+      <div class="mini-status" id="topStatus">等待解锁</div>
+    </div>
+
+    <!-- 性别选择弹窗 -->
+    <div class="gender-mask" id="genderMask">
+      <div class="gender-box">
+        <div class="gender-title">请选择你的性别</div>
+        <div class="gender-btn-row">
+          <div class="gender-btn" data-gender="male">男生</div>
+          <div class="gender-btn" data-gender="female">女生</div>
+        </div>
+      </div>
+    </div>
+    <!-- 密码页 -->
+    <section class="page active" id="page-pwd">
+      <div class="pwd-card">
+        <div class="pwd-inner">
+          <div class="pwd-eyebrow"><span class="dot"></span>权限验证</div>
+          <h1 class="pwd-title">解锁<span class="accent">古今人物</span>档案库</h1>
+          <p class="pwd-sub">36道专业性格测试题，匹配32位古今人物人格（男女各16位），精准复刻四维性格特质。</p>
+
+          <div class="pwd-input-row">
+            <div class="pwd-icon">🔐</div>
+            <input id="pwdInput" class="pwd-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off" />
+          </div>
+
+          <div class="pwd-hint">
+            <span>提示：访问码为四位数字</span>
+            <span class="err" id="pwdErr">访问码错误，请重新输入</span>
+          </div>
+
+          <button class="btn btn-primary" id="pwdUnlockBtn">进入档案库</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 首页 -->
+    <section class="page" id="page-intro">
+      <div class="intro-card">
+        <div class="intro-header">
+          <div>
+            <div class="intro-eyebrow">四维性格测评 · 古今人物匹配</div>
+            <h2 class="intro-title">找到专属你的<em>历史人格</em></h2>
+          </div>
+          <p class="intro-lead">
+            基于四维性格维度设计36道测试题，区分男女专属人物库，精准匹配你的性格原型，生成专属人物档案报告。
+          </p>
+        </div>
+
+        <div class="feature-grid">
+          <div class="feature-item">
+            <div class="feature-num">01</div>
+            <div class="feature-title">32位人物库</div>
+            <div class="feature-desc">男女各16位，严格对应十六种性格原型，一人一格、精准匹配。</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">02</div>
+            <div class="feature-title">36道专业题库</div>
+            <div class="feature-desc">全覆盖内外向、实感直觉、理性感性、判断感知四维维度，测试结果更精准。</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">03</div>
+            <div class="feature-title">分性别匹配</div>
+            <div class="feature-desc">答题开始时选择性别，专属男女人物结果，不跨性别匹配。</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">04</div>
+            <div class="feature-title">完整人格报告</div>
+            <div class="feature-desc">人格解析、能力维度、优缺点、专属语录全方位解读。</div>
+          </div>
+        </div>
+
+        <div class="info-strip">
+          <p><strong>测试提示：</strong>共36道单选题，凭第一直觉作答，结束后选择性别，生成专属历史人物报告。所有数据仅本地展示，不会上传。</p>
+        </div>
+
+        <div class="action-row">
+          <button class="btn btn-primary btn-primary-lg" id="startTestBtn">开始性格测试</button>
+          <button class="btn btn-ghost btn-ghost-lg" id="howMatchBtn">匹配原理说明</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 答题页 -->
+    <section class="page" id="page-quiz">
+      <div class="quiz-card">
+        <div class="quiz-head">
+          <span class="quiz-tag">性格测评</span>
+          <span class="quiz-index" id="quizIndex">1 / 36</span>
+        </div>
+        <div class="progress">
+          <div class="progress-bar" id="quizProgress"></div>
+        </div>
+
+        <h3 class="question" id="questionText"></h3>
+        <div class="options" id="optionsBox"></div>
+
+        <div class="quiz-foot">
+          <button class="btn btn-nav" id="prevBtn" disabled>上一题</button>
+          <button class="btn btn-submit" id="nextSubmitBtn">下一题</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 结果页 -->
+    <section class="page" id="page-result">
+      <div id="reportCaptureArea">
+        <div class="result-card result-hero">
+          <div class="match-ring">
+            <div class="match-ring-inner" id="matchPercent">92%</div>
+          </div>
+          <div class="result-name" id="personName">匹配人物</div>
+          <div class="result-sub" id="personSub">性格原型 · 历史人物</div>
+          <div class="result-tags" id="tagGroup"></div>
+          <div class="result-quote">
+            <div class="result-quote-label">人物专属语录</div>
+            <div class="result-quote-text" id="quoteText"></div>
+          </div>
+        </div>
+
+        <div class="result-card">
+          <h3 class="section-title">人格自画像</h3>
+          <p class="result-text" id="selfPortrait"></p>
+        </div>
+
+        <div class="result-card">
+          <h3 class="section-title">八维能力结构</h3>
+          <div class="ability-list" id="abilityWrap"></div>
+        </div>
+
+        <div class="result-card">
+          <h3 class="section-title">核心性格底色</h3>
+          <div class="card-list" id="baseColorWrap"></div>
+        </div>
+
+        <div class="result-card">
+          <h3 class="section-title">现实行为风格</h3>
+          <div class="side-card">
+            <h4>你的处事模式</h4>
+            <p id="realYou"></p>
+          </div>
+        </div>
+
+        <div class="result-card">
+          <h3 class="section-title">人格盲点与成长建议</h3>
+          <div class="card-list" id="riskWrap"></div>
+        </div>
+
+        <div class="result-card">
+          <h3 class="section-title">专属人物台词</h3>
+          <div class="card-list" id="quoteListWrap"></div>
+        </div>
+
+        <div class="fun-notice">
+          本测试基于四维性格原型趣味改编，仅供自我探索娱乐参考。
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn btn-outline-primary" id="retestBtn">重新测试</button>
+        <button class="btn btn-primary btn-primary-result" id="shareResultBtn">保存报告到相册</button>
+      </div>
+    </section>
+
+    <!-- 匹配说明浮层 -->
+    <div class="modal-mask" id="matchModal">
+      <div class="modal">
+        <h3>人物匹配原理</h3>
+        <p>通过36道四维维度题目，测算你的内外向、实感直觉、理性感性、判断感知性格维度，匹配对应十六种性格原型历史人物，分男女专属库生成结果。</p>
+        <div class="modal-progress">
+          <div class="modal-progress-bar" id="modalBar"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">图片已保存到相册</div>
+<script>
+(function () {
+  "use strict";
+
+  const PASSWORD = "1088";
+  let answers = Array(36).fill(null);
+  let currentQIndex = 0;
+  let autoJumpTimer = null;
+  let pwdUnlocked = false;
+  let userGender = "";
+  // ====================== 36道全新四选项性格题库 ======================
+  const questions = [
+    // 1-9 内外向 I/E
+    {q:"周末空闲时间，你更倾向于？",opts:["A.独处充电，享受安静个人时光","B.少量社交，优先舒服的熟人相处","C.随心切换，独处社交都可以","D.主动社交，喜欢热闹多人氛围"]},
+    {q:"疲惫的时候，你的解压方式是？",opts:["A.独自发呆追剧，彻底不社交","B.安静听歌看书，自我调节情绪","C.短途出门散心，轻度放松","D.找朋友倾诉玩耍，释放压力"]},
+    {q:"陌生新环境，你的状态是？",opts:["A.紧张拘谨，尽量沉默不主动","B.慢热观望，等待他人主动搭话","C.平稳适应，不刻意合群也不孤僻","D.快速融入，主动认识新朋友"]},
+    {q:"休息时被人频繁打扰，你会？",opts:["A.明显烦躁，直接拒绝沟通","B.内心不适，委婉拉开距离","C.可以理解，简单配合回应","D.毫无介意，乐于互动交流"]},
+    {q:"空闲夜晚，你更喜欢？",opts:["A.一个人安静独处思考","B.刷手机消遣，轻度放松","C.和家人简单聊天互动","D.组队聊天打游戏热闹"]},
+    {q:"多人聚会结束后，你的感受是？",opts:["A.身心疲惫，急需独处回血","B.一般疲惫，需要短暂休息","C.状态平稳，无明显消耗","D.心情愉悦，越热闹越放松"]},
+    {q:"遇到开心事，你会？",opts:["A.独自开心，不分享给任何人","B.只和极少数至亲好友分享","C.选择性分享，看场合而定","D.高调分享，乐于传递快乐"]},
+    {q:"日常表达想法的习惯是？",opts:["A.沉默内敛，想法藏于心底","B.少说多听，谨慎发表观点","C.有问必答，适度表达自我","D.主动输出，乐于分享观点"]},
+    {q:"社交消耗对你来说？",opts:["A.极大消耗，尽量减少社交","B.中度消耗，需要时间恢复","C.基本无消耗，轻松适配","D.正向充电，社交让你更积极"]},
+
+    // 10-18 实感/直觉 S/N
+    {q:"做选择时，你更相信？",opts:["A.过往亲身经验和现实细节","B.真实数据、客观事实依据","C.第一直觉、当下感受判断","D.未来趋势、想象与可能性"]},
+    {q:"看待事物，你更关注？",opts:["A.当下具体细节、真实现状","B.实际结果、落地的现实价值","C.背后寓意、隐性逻辑","D.未来发展、未知可能性"]},
+    {q:"听别人讲故事，你在意？",opts:["A.时间、地点、细节真实性","B.事件过程、真实发生经过","C.情绪氛围、故事感染力","D.脑洞创意、后续想象空间"]},
+    {q:"学习新东西，你擅长？",opts:["A.死记硬背、落地实操","B.按步骤执行、标准化学习","C.灵活变通、举一反三","D.抓核心逻辑、快速融会贯通"]},
+    {q:"规划生活，你更偏向？",opts:["A.脚踏实地，只做当下能完成的事","B.务实稳妥，拒绝空想不切实际","C.兼顾现实，偶尔畅想未来","D.热爱畅想，喜欢规划长远未来"]},
+    {q:"解读问题，你的习惯是？",opts:["A.就事论事，只看表面事实","B.聚焦细节，精准核对信息","C.联想关联，思考深层含义","D.发散思维，延伸多种可能"]},
+    {q:"面对未知事物，你会？",opts:["A.谨慎抗拒，只相信亲眼所见","B.保持理性，等待事实验证","C.好奇观望，愿意尝试了解","D.充满期待，喜欢新鲜未知"]},
+    {q:"回忆过往，你更记得？",opts:["A.具体时间、细节、画面","B.事件结果、实际收获","C.当时的心情、情绪感受","D.整件事的感悟与启发"]},
+    {q:"做事风格更贴合？",opts:["A.务实落地，拒绝虚无想象","B.严谨细致，注重真实体验","C.虚实结合，理性兼顾感性","D.脑洞开阔，擅长创新突破"]},
+
+    // 19-27 理性/感性 T/F
+    {q:"和人产生分歧，你优先？",opts:["A.对错逻辑，理性辩论输赢","B.客观道理，就事论事解决","C.照顾情绪，委婉沟通磨合","D.共情对方，优先维系关系"]},
+    {q:"朋友犯错连累你，你会？",opts:["A.理性追责，分清对错责任","B.冷静看待，公私分明处理","C.理解包容，淡化矛盾隔阂","D.完全释怀，优先顾及感情"]},
+    {q:"给他人提建议，你习惯？",opts:["A.直白理性，只讲客观利弊","B.客观中立，给出最优方案","C.温和委婉，兼顾对方心情","D.共情安慰，优先照顾情绪"]},
+    {q:"评价一个人，你更看重？",opts:["A.能力、逻辑、做事结果","B.人品底线、客观行为","C.待人态度、情绪温度","D.真诚善良、共情能力"]},
+    {q:"被他人误解，你的反应？",opts:["A.理性解释，理清事实逻辑","B.淡然处之，无需过多辩解","C.内心委屈，情绪受到影响","D.难过内耗，非常在意评价"]},
+    {q:"团队决策冲突，你会？",opts:["A.坚持真理，优先最优方案","B.服从大局，理性权衡取舍","C.妥协让步，照顾团队氛围","D.主动调和，维系所有人关系"]},
+    {q:"看待感情问题，你偏向？",opts:["A.理性分析利弊，权衡得失","B.现实客观，冷静看待关系","C.感性为主，重视相处感受","D.极致共情，容易为爱妥协"]},
+    {q:"别人求助你，你优先？",opts:["A.判断是否合理，理性帮忙","B.量力而行，客观提供帮助","C.心软包容，尽量满足对方","D.不忍心拒绝，习惯性迁就"]},
+    {q:"做重要决定，核心依据是？",opts:["A.逻辑利弊、客观收益","B.现实条件、可行性分析","C.内心感受、舒适程度","D.他人情绪、人际关系"]},
+
+    // 28-36 判断/感知 J/P
+    {q:"生活状态，你更喜欢？",opts:["A.规律自律，计划清晰固定","B.有序规整，凡事提前安排","C.灵活随性，计划可随时调整","D.自由松弛，无固定规划"]},
+    {q:"处理任务，你的习惯是？",opts:["A.提前完成，绝不拖延积压","B.按时完成，严格遵守期限","C.临近截止，集中突击完成","D.随心拖延，最后临时赶工"]},
+    {q:"突发打乱计划，你会？",opts:["A.极度烦躁，难以接受变动","B.略有不适，快速调整回归计划","C.顺其自然，接受临时变化","D.非常喜欢，享受随机新鲜感"]},
+    {q:"桌面生活物品，你的状态？",opts:["A.极致整洁，分类规整有序","B.干净清爽，基本无杂乱","C.随性摆放，自己看懂即可","D.自由散漫，杂乱无拘无束"]},
+    {q:"出行游玩，你偏好？",opts:["A.全程详细攻略，精准规划行程","B.大致规划，固定核心行程","C.简单方向，边走边看随心玩","D.完全佛系，无任何计划"]},
+    {q:"对待未完成事项，你会？",opts:["A.耿耿于怀，必须尽快做完","B.记挂在心，优先收尾完成","C.暂时搁置，不影响心态","D.毫不在意，随缘处理即可"]},
+    {q:"面对选择，你的风格？",opts:["A.快速决断，绝不犹豫纠结","B.理性对比，果断敲定结果","C.反复纠结，难以快速选择","D.随心随缘，怎么选都可以"]},
+    {q:"日常作息，你的特点？",opts:["A.高度自律，作息极其规律","B.基本稳定，很少熬夜打乱","C.偶尔随性，作息小幅波动","D.完全自由，作息毫无规律"]},
+    {q:"面对变化，你的态度？",opts:["A.抗拒变动，偏爱稳定固定","B.接受可控变化，排斥突发变动","C.适应变化，心态平和包容","D.热爱改变，喜欢新鲜变数"]}
+  ];
+  // ====================== 16位女性性格原型对应历史人物 ======================
+  const femalePersonList = [
+    {mbti:"ISTJ",name:"班昭",subTitle:"严谨务实型 · 东汉史学家",tags:"严谨,自律,务实,尽责",match:93,quote:"兢兢业业，守正笃行，方能成事。",self:"你是沉稳可靠的实干型人格，做事严谨细致、恪守原则，极具责任心。偏爱稳定有序的生活，踏实务实、低调内敛，是团队中最值得信赖的兜底者。",ability:{决断:78,共情:52,开创:45,洞察:82,表达:48,经营:88,independent:75,担当:92},base:[{title:"核心底色·守序务实",text:"你坚守规则、脚踏实地，不浮躁、不空想，用行动换取结果。"},{title:"隐藏天赋·极致靠谱",text:"细节把控极强，做事稳妥周全，让人百分百放心。"},{title:"长期优势·责任担当",text:"遇事不逃避，抗压能力强，是身边人的依靠。"}],real:"生活中你低调踏实，习惯提前规划、稳步执行，不喜欢突发变动，用自律和坚持稳步前行。",risk:[{title:"人格盲点",text:"过于守旧，难以快速接受新变化、新思维。"},{title:"成长短板",text:"不懂变通，容易被固有规则束缚自我。"},{title:"优化建议",text:"保留严谨底色，学会灵活变通，敢于尝试新方式。"}],lines:"兢兢业业，守正笃行；行稳致远，久久为功。守拙务实，静心笃行；不负光阴，不负本心。心有规矩，行有方寸，自成风骨。"},
+    {mbti:"ISFJ",name:"上官婉儿",subTitle:"温柔守护型 · 唐代才女",tags:"温柔,细腻,守护,善良",match:91,quote:"温润藏心，默默生辉，温柔自有力量。",self:"你是温柔细腻的守护型人格，共情力极强、待人真诚包容。擅长默默付出、照顾他人情绪，内敛温柔、踏实善良，是身边最温暖的存在。",ability:{决断:55,共情:95,开创:42,洞察:78,表达:62,经营:72,independent:60,担当:85},base:[{title:"核心底色·温柔包容",text:"天性善良柔软，习惯性照顾他人、包容他人。"},{title:"隐藏天赋·情绪感知",text:"能精准捕捉他人情绪变化，共情能力出众。"},{title:"长期优势·默默付出",text:"不爱张扬，默默奉献，真诚待人不功利。"}],real:"你待人温和谦逊，习惯换位思考，优先顾及他人感受，愿意默默守护在意的人。",risk:[{title:"人格盲点",text:"习惯性牺牲自我，容易过度内耗讨好别人。"},{title:"成长短板",text:"不懂拒绝，常常委屈自己成全他人。"},{title:"优化建议",text:"学会设立边界，善待自己，不必一味迁就所有人。"}],lines:"温润藏心，静守微光；以柔处世，本心不移。善察人情，默守初心；温柔亦有底线。心藏暖意，润物无声，自有风骨。"},
+    {mbti:"INFJ",name:"李清照",subTitle:"内省先知型 · 宋代词人",tags:"通透,深刻,理想,共情",match:94,quote:"生当作人杰，死亦为鬼雄。",self:"你是通透深邃的理想主义人格，洞察力极强，善于看透事物本质。内心拥有坚定的信念，共情深刻，偏爱独处思考，精神世界丰盈独立。",ability:{决断:72,共情:90,开创:76,洞察:94,表达:86,经营:60,independent:88,担当:76},base:[{title:"核心底色·内省理想",text:"内心世界丰富深邃，拥有自己坚守的信念，不随波逐流。"},{title:"隐藏天赋·深层洞察",text:"很容易看穿表象下的本质，感知他人内心隐藏情绪。"},{title:"长期优势·精神自持",text:"拥有强大内心世界，哪怕身处喧嚣，依旧守住本心。"}],real:"你习惯向内探索，不喜浅层社交，看重精神共鸣，追求灵魂契合，对世俗浅层应酬保持距离。",risk:[{title:"人格盲点",text:"容易过度思考，精神内耗严重，敏感多虑。"},{title:"成长短板",text:"很难向人敞开心扉，极少有人能真正读懂你。"},{title:"优化建议",text:"不必事事深究本质，允许事情留有留白，减少精神内耗。"}],lines:"生当作人杰，死亦为鬼雄。九万里风鹏正举，风休住，蓬舟吹取三山去。何须浅碧深红色，自是花中第一流。"},
+    {mbti:"INTJ",name:"武则天",subTitle:"战略谋划型 · 武周帝王",tags:"远见,谋略,冷静,果决",match:96,quote:"欲成大事，当谋全局，不为一时得失所困。",self:"你是冷静强大的战略型人格，擅长长远布局，思维缜密，目标感极强。不被情绪裹挟，拥有独立判断，敢于打破旧有格局，拥有强大的全局视野。",ability:{决断:96,共情:40,开创:92,洞察:90,表达:74,经营:82,independent:94,担当:88},base:[{title:"核心底色·全局谋断",text:"擅长站在长远角度规划，目标清晰，意志坚定。"},{title:"隐藏天赋·破局思维",text:"不被世俗固有规则束缚，敢于创新变革。"},{title:"长期优势·强大自持",text:"情绪稳定，遇事冷静，抗压能力极强。"}],real:"行事目标导向，善于预判风险，偏爱深度思考，不喜欢无意义的闲聊与无效社交。",risk:[{title:"人格盲点",text:"理性过重，容易忽略他人情绪感受。"},{title:"成长短板",text:"高标准严要求，容易对身边人缺少包容。"},{title:"优化建议",text:"谋略之外保留温度，懂得接纳人与人之间的差异。"}],lines:"欲成大事，当谋全局，不为一时得失所困。日月当空，敢为前人未为之事。心有丘壑，静候时机，一击而定。"},
+    {mbti:"ISTP",name:"黄道婆",subTitle:"实操巧思型 · 元代纺织革新家",tags:"灵巧,务实,冷静,应变",match:89,quote:"知行合一，巧手成事，万物皆可求索。",self:"你是动手能力极强的实操型人格，擅长解决现实难题，冷静灵活，随机应变。不爱空谈理论，重视实操体验，擅长拆解问题，遇事沉着。",ability:{决断:76,共情:44,开创:70,洞察:74,表达:50,经营:66,independent:90,担当:68},base:[{title:"核心底色·务实善变",text:"擅长实操落地，遇到问题优先动手尝试解决。"},{title:"隐藏天赋·临场应变",text:"突发状况下心态稳定，快速找到解决办法。"},{title:"长期优势·理性拆解",text:"擅长拆解复杂事物，抓核心关键点。"}],real:"不爱长篇大论，喜欢动手实践，讨厌繁琐冗长的规则束缚，享受解决难题带来的成就感。",risk:[{title:"人格盲点",text:"缺少长远规划，容易只关注眼前问题。"},{title:"成长短板",text:"不擅长表达内心想法，容易被人误解冷漠。"},{title:"优化建议",text:"在专注实操的同时，多预留长远规划的思考空间。"}],lines:"知行合一，巧手成事，万物皆可求索。遇事不慌，见招拆招。不尚空谈，以行证道。"},
+    {mbti:"ISFP",name:"管道升",subTitle:"艺术感知型 · 元代书画大家",tags:"细腻,审美,自由,本真",match:90,quote:"随心而行，守本心，赏世间万般风月。",self:"你是热爱美好、忠于自我的艺术感知人格，感官敏锐，审美出众，追求真实自在的生活。不喜强行约束，善于感受生活细微美好，行事遵从内心感受。",ability:{决断:50,共情:84,开创:72,洞察:76,表达:64,经营:54,independent:82,担当:62},base:[{title:"核心底色·随心本真",text:"忠于自身感受，不愿为迎合他人伪装自己。"},{title:"隐藏天赋·审美感知",text:"对色彩、氛围、美感拥有天生敏锐感知力。"},{title:"长期优势·活在当下",text:"擅长感受当下美好，懂得享受生活。"}],real:"你偏爱松弛自在的节奏，反感刻板教条，注重生活体验，不喜欢宏大空洞的理论说教。",risk:[{title:"人格盲点",text:"回避冲突，遇到矛盾容易选择逃避。"},{title:"成长短板",text:"不喜长期规划，容易拖延长期目标。"},{title:"优化建议",text:"保留热爱与浪漫，面对冲突学会勇敢表达立场。"}],lines:"随心而行，守本心，赏世间万般风月。一枝一叶，皆是人间诗意。心随景动，自在安然。"},
+    {mbti:"INFP",name:"林黛玉",subTitle:"理想诗意型 · 红楼才女",tags:"敏感,纯粹,理想,诗意",match:92,quote:"质本洁来还洁去，强于污淖陷渠沟。",self:"你是纯粹浪漫的理想诗意人格，内心敏感细腻，精神世界丰盈。坚守内心纯粹的价值观，共情力强，向往灵魂共鸣，讨厌虚伪世俗应酬。",ability:{决断:46,共情:92,开创:78,洞察:86,表达:78,经营:44,independent:84,担当:54},base:[{title:"核心底色·纯粹理想",text:"内心有一套不容妥协的价值准则，追求真诚。"},{title:"隐藏天赋·诗意感知",text:"能捕捉文字、情绪中细腻动人的诗意。"},{title:"长期优势·本心不改",text:"不愿随波逐流，坚守内心的真诚与纯粹。"}],real:"习惯向内感受情绪，偏爱安静独处，对虚伪客套十分敏感，极度看重精神上的理解与认同。",risk:[{title:"人格盲点",text:"情绪感知力太强，极易陷入持续内耗。"},{title:"成长短板",text:"面对现实挫折容易悲观，抗压偏弱。"},{title:"优化建议",text:"保护内心诗意，同时学会接纳现实的不完美。"}],lines:"质本洁来还洁去，强于污淖陷渠沟。孤标傲世偕谁隐，一样花开为底迟。心藏丘壑，情寄风月，守一份本心。"},
+    {mbti:"INTP",name:"班昭(备选)",subTitle:"思辨求知型 · 思想探索者",tags:"思辨,好奇,理性,求知",match:88,quote:"格物致知，穷理求索，万物皆有逻辑。",self:"你是天生的思辨探索人格，好奇心旺盛，热爱挖掘事物底层逻辑。喜欢独立思考，乐于拆解理论，对抽象问题充满兴趣，不太在意世俗人情。",ability:{决断:48,共情:42,开创:84,洞察:88,表达:60,经营:42,independent:86,担当:52},base:[{title:"核心底色·理性求索",text:"热衷于探究底层原理，享受思考推演的乐趣。"},{title:"隐藏天赋·逻辑拆解",text:"擅长发现逻辑漏洞，多角度推演问题。"},{title:"长期优势·开放思考",text:"包容不同观点，乐于更新认知。"}],real:"喜欢独自思考各类抽象问题，对重复繁琐事务缺乏耐心，社交偏向精简，讨厌无意义人情客套。",risk:[{title:"人格盲点",text:"沉迷理论思考，容易忽略现实落地执行。"},{title:"成长短板",text:"不擅长处理人情世故，容易显得疏离。"},{title:"优化建议",text:"兼顾理论思考，多把想法落地为实际行动。"}],lines:"格物致知，穷理求索，万物皆有逻辑。思而不止，探本溯源。理存于心，不困俗见。"},
+    {mbti:"ESTJ",name:"吕雉",subTitle:"管理统帅型 · 汉代执政者",tags:"果决,管理,务实,强势",match:91,quote:"法度立，则秩序定，行事必有章法。",self:"你是干练果决的统帅管理人格，执行力强，擅长统筹管理，重视规则与效率。目标明确，做事雷厉风行，有很强组织能力，敢于承担责任。",ability:{决断:94,共情:46,开创:74,洞察:72,表达:76,经营:90,independent:86,担当:94},base:[{title:"核心底色·秩序统帅",text:"崇尚规则秩序，擅长统筹安排，追求高效落地。"},{title:"隐藏天赋·组织管理",text:"能快速梳理复杂事务，带动团队推进目标。"},{title:"长期优势·抗压担当",text:"危机面前镇定，敢于扛起责任。"}],real:"喜欢清晰计划，讨厌混乱无序，做事讲求效率，遇到问题直接解决，不喜欢绕弯子。",risk:[{title:"人格盲点",text:"重视效率，容易忽略他人情绪感受。"},{title:"成长短板",text:"习惯强势主导，不容易接纳不同意见。"},{title:"优化建议",text:"坚持原则的同时，多倾听他人想法，兼顾人情。"}],lines:"法度立，则秩序定，行事必有章法。临事决断，不避危难。以秩序立身，以实干成事。"},
+    {mbti:"ESFJ",name:"卫子夫",subTitle:"温暖主事型 · 一代贤后",tags:"热忱,体贴,合群,周全",match:90,quote:"怀仁守善，周全待人，以德立身。",self:"你是温暖周全的主事型人格，擅长维系人际关系，体贴周到，重视和睦。乐于照顾身边人，善于协调矛盾，看重集体和谐，待人真诚热忱。",ability:{决断:66,共情:90,开创:50,洞察:70,表达:80,经营:84,independent:62,担当:86},base:[{title:"核心底色·和睦共情",text:"在意集体氛围，愿意主动维护身边人的关系。"},{title:"隐藏天赋·人际协调",text:"善于感知群体氛围，化解人际矛盾。"},{title:"长期优势·宽厚待人",text:"待人宽厚，懂得体谅他人难处。"}],real:"乐于关心亲友，重视人情往来，愿意主动协调矛盾，希望身边环境和睦融洽。",risk:[{title:"人格盲点",text:"过度在意他人评价，容易为维持关系委屈自己。"},{title:"成长短板",text:"害怕冲突，习惯回避对立。"},{title:"优化建议",text:"维护关系的同时，守住自我底线，不必讨好所有人。"}],lines:"怀仁守善，周全待人，以德立身。心怀善意，温润处世。守一份仁心，护周遭安宁。"},
+    {mbti:"ENFJ",name:"卓文君",subTitle:"感召引领型 · 西汉才女",tags:"热忱,感召,理想,通透",match:93,quote:"心有山海，敢爱敢为，以本心感召他人。",self:"你是富有感染力的理想引领人格，洞察力强，擅长鼓舞他人，拥有人格魅力。重视价值观契合，善于读懂人心，愿意带动身边人共同成长。",ability:{决断:80,共情:92,开创:82,洞察:88,表达:90,经营:74,independent:80,担当:84},base:[{title:"核心底色·理想感召",text:"心怀信念，善于鼓舞身边人，传递正向力量。"},{title:"隐藏天赋·读懂人心",text:"善于洞察他人内心诉求，擅长沟通引导。"},{title:"长期优势·真诚热忱",text:"待人赤诚，愿意支持他人成长。"}],real:"你看重精神共鸣，善于鼓励身边的人，乐于帮助他人成长，拥有很强的感染力。",risk:[{title:"人格盲点",text:"过度投入他人的人生，容易透支自我精力。"},{title:"成长短板",text:"期待他人和自己拥有同样理想，容易失望。"},{title:"优化建议",text:"尊重每个人的人生选择，分清自己与他人的人生边界。"}],lines:"心有山海，敢爱敢为，以本心感召他人。愿得一心人，白头不相离。风骨自在，不被世俗定义。"},
+    {mbti:"ENTJ",name:"萧太后",subTitle:"统帅宏图型 · 辽代女主",tags:"雄略,果决,远见,领导力",match:95,quote:"胸有宏图，临机决断，不畏前路风雨。",self:"你是雄才大略的统帅宏图人格，天生领导者，格局宏大，目标远大。擅长战略统筹，魄力十足，敢于直面挑战，不惧竞争，执行力极强。",ability:{决断:98,共情:48,开创:94,洞察:86,表达:86,经营:92,independent:92,担当:96},base:[{title:"核心底色·宏图领袖",text:"格局开阔，目标宏大，擅长带领群体达成目标。"},{title:"隐藏天赋·战略统筹",text:"快速看清局势，制定长远战略方案。"},{title:"长期优势·魄力抗压",text:"危机面前敢于决策，不惧压力与挑战。"}],real:"天生目标导向，热爱挑战，喜欢掌控全局，做事干脆利落，讨厌拖沓低效。",risk:[{title:"人格盲点",text:"目标优先，容易忽略团队成员情绪感受。"},{title:"成长短板",text:"追求高效，缺少耐心包容慢节奏的人。"},{title:"优化建议",text:"宏图之外兼顾人情，懂得激励而非单纯施压。"}],lines:"胸有宏图，临机决断，不畏前路风雨。掌大局，定方向，一往无前。凡欲成事，必先立其志。"},
+    {mbti:"ESTP",name:"红拂女",subTitle:"果敢应变型 · 传奇侠女",tags:"机敏,果敢,冒险,灵活",match:89,quote:"见机而动，敢闯敢行，世事当亲身历练。",self:"你是机敏果敢的现实应变人格，观察力敏锐，擅长临场应变，热爱新鲜挑战。活在当下，行动力强，敢于抓住眼前机遇，擅长和各类人打交道。",ability:{决断:86,共情:60,开创:80,洞察:78,表达:84,经营:76,independent:88,担当:70},base:[{title:"核心底色·机敏敢闯",text:"观察力敏锐，擅长捕捉当下机会，敢于行动。"},{title:"隐藏天赋·临场应变",text:"突发状况反应迅速，擅长随机应变。"},{title:"长期优势·现实行动力",text:"不空想，看准机会立刻行动。"}],real:"热爱新鲜体验，讨厌枯燥一成不变，擅长社交，面对突发状况可以快速调整方案。",risk:[{title:"人格盲点",text:"看重眼前机遇，缺少长期规划。"},{title:"成长短板",text:"容易冲动行事，忽略长远隐患。"},{title:"优化建议",text:"把握当下机遇，同时预留长远风险考量。"}],lines:"见机而动，敢闯敢行，世事当亲身历练。路在脚下，机不可失。随心而动，侠义在心。"},
+    {mbti:"ESFP",name:"杨玉环",subTitle:"鲜活体验型 · 绝代佳人",tags:"鲜活,热情,审美,乐天",match:90,quote:"人间风物，当尽兴体验，不负当下时光。",self:"你是鲜活热烈的体验型人格，感知力强，热爱生活，乐观乐天。擅长享受当下，感染力强，审美出众，乐于和身边人分享美好，讨厌压抑沉闷。",ability:{决断:62,共情:86,开创:74,洞察:72,表达:88,经营:70,independent:74,担当:64},base:[{title:"核心底色·鲜活乐天",text:"热爱生活，享受当下，自带感染力。"},{title:"隐藏天赋·氛围营造",text:"能快速带动气氛，让身边人感到轻松愉悦。"},{title:"长期优势·乐观自愈",text:"心态乐观，能快速从负面情绪走出来。"}],real:"喜欢热闹美好的事物，注重当下体验，热爱分享，讨厌枯燥压抑一成不变的环境。",risk:[{title:"人格盲点",text:"偏爱即时快乐，较少思考长远后果。"},{title:"成长短板",text:"回避枯燥艰难的长期任务。"},{title:"优化建议",text:"享受当下的同时，为长远目标做一点点持续积累。"}],lines:"人间风物，当尽兴体验，不负当下时光。花开有时，美景莫负。尽兴而活，热烈自在。"},
+    {mbti:"ENFP",name:"太平公主",subTitle:"灵动追梦型 · 大唐公主",tags:"灵动,热忱,脑洞,追梦",match:91,quote:"心有万千想象，永远期待前路新风景。",self:"你是充满想象力的灵动追梦人格，热情乐观，脑洞开阔，对世界充满好奇。善于发掘可能性，感染力强，向往自由，讨厌被束缚，热爱新鲜体验。",ability:{决断:64,共情:88,开创:90,洞察:84,表达:92,经营:62,independent:82,担当:66},base:[{title:"核心底色·自由追梦",text:"向往自由，热爱一切新鲜有趣的可能性。"},{title:"隐藏天赋·创意联想",text:"联想丰富，创意源源不断，擅长激发他人热情。"},{title:"长期优势·乐观热忱",text:"心态积极，很容易点燃身边人的热情。"}],real:"想法丰富，喜欢探索新事物，讨厌死板的条条框框，热爱交流灵感，讨厌枯燥重复的工作。",risk:[{title:"人格盲点",text:"想法很多，容易三分钟热度，难以长期坚持。"},{title:"成长短板",text:"容易忽略现实细节，理想化看待事情。"},{title:"优化建议",text:"保留创意热情，学会把想法落地，坚持长期目标。"}],lines:"心有万千想象，永远期待前路新风景。天地辽阔，自有无限可能。热爱不息，奔赴山海。"},
+    {mbti:"ENTP",name:"蔡文姬",subTitle:"思辨辩论型 · 汉末才女",tags:"机敏,思辨,创新,善辩",match:88,quote:"思辨不息，敢于质疑，于碰撞之中见真知。",self:"你是机敏善辩的思辨探索人格，思维跳脱，喜欢挑战固有观点，好奇心旺盛。乐于头脑交锋，擅长多角度思考，讨厌刻板教条，享受思维碰撞带来的乐趣。",ability:{决断:74,共情:58,开创:92,洞察:86,表达:94,经营:56,independent:86,担当:64},base:[{title:"核心底色·思辨善疑",text:"不盲从定论，喜欢多角度思辨，乐于挑战固有看法。"},{title:"隐藏天赋·头脑博弈",text:"反应敏捷，善于在讨论中发掘新思路。"},{title:"长期优势·创新灵活",text:"思想开放，接受新观点，灵活变通。"}],real:"喜欢头脑讨论，乐于拆解固有观念，讨厌死板一成不变的规则，享受思维碰撞。",risk:[{title:"人格盲点",text:"享受辩论，容易单纯抬杠，忽略他人感受。"},{title:"成长短板",text:"想法多，落地执行意愿偏弱。"},{title:"优化建议",text:"享受思辨之余，学会倾听，把创意转化为实际成果。"}],lines:"思辨不息，敢于质疑，于碰撞之中见真知。博闻强识，思而不滞。世事多维，不困单一之见。"},
+  ];
+  // ====================== 16位男性性格原型对应历史人物 ======================
+  const malePersonList = [
+    {mbti:"ISTJ",name:"诸葛亮",subTitle:"严谨守序型 · 蜀汉丞相",tags:"谨慎,尽责,务实,守礼",match:94,quote:"鞠躬尽瘁，死而后已。",self:"沉稳严谨的守序实干人格，做事细致审慎，恪守职责，原则感极强。习惯周密规划，脚踏实地，重承诺守信用，是团队里值得托付的支柱。",ability:{决断:84,共情:54,开创:62,洞察:86,表达:66,经营:90,independent:78,担当:96},base:[{title:"核心底色·守责笃行",text:"信守承诺，做事稳妥，凡事三思而后行。"},{title:"隐藏天赋·周密规划",text:"擅长梳理繁杂事务，提前预判风险。"},{title:"长期优势·可靠担当",text:"临事尽责，不会临阵逃避。"}],real:"偏爱稳定有序，做事按计划稳步推进，不喜突发变故，重信义，做事追求尽善尽美。",risk:[{title:"人格盲点",text:"过度谨慎，容易顾虑太多错失机会。"},{title:"成长短板",text:"难以接纳颠覆性的新方案。"},{title:"优化建议",text:"保留审慎，适当放开思路，敢于尝试新路径。"}],lines:"鞠躬尽瘁，死而后已。非淡泊无以明志，非宁静无以致远。静以修身，俭以养德。"},
+    {mbti:"ISFJ",name:"郭子仪",subTitle:"忠良守护型 · 唐代名将",tags:"宽厚,隐忍,守护,忠义",match:92,quote:"怀忠守善，隐忍负重，护一方安宁。",self:"宽厚隐忍的守护型人格，内心包容，善于体察他人难处，忠义可靠。不喜争功，默默承担压力，擅长维系大局，以柔和方式化解矛盾。",ability:{决断:68,共情:88,开创:52,洞察:80,表达:64,经营:82,independent:66,担当:90},base:[{title:"核心底色·宽厚守护",text:"心怀仁善，愿意为大局隐忍退让。"},{title:"隐藏天赋·人情洞察",text:"读懂人心，懂得包容，擅长缓和冲突。"},{title:"长期优势·忠义可靠",text:"危难之时愿意挺身而出守护身边人。"}],real:"不喜欢张扬争名，习惯默默承担压力，顾全大局，待人宽厚，愿意牺牲个人得失保全集体。",risk:[{title:"人格盲点",text:"习惯性委屈自己，长期压抑自身诉求。"},{title:"成长短板",text:"害怕冲突，不愿主动争取属于自己的权益。"},{title:"优化建议",text:"心怀善意的同时，也要懂得维护自身利益。"}],lines:"怀忠守善，隐忍负重，护一方安宁。功高而不震主，权重而存谦卑。以宽厚立身，以忠义行事。"},
+    {mbti:"INFJ",name:"王阳明",subTitle:"内圣悟道型 · 心学宗师",tags:"通透,自省,理想,远见",match:95,quote:"知行合一，致良知。",self:"深邃自省的悟道型人格，善于向内求索，看透表象直达本质，内心拥有坚定的精神信仰。外表平和，内核强大，追求精神自洽，看重本心良知。",ability:{决断:82,共情:86,开创:84,洞察:96,表达:82,经营:68,independent:90,担当:84},base:[{title:"核心底色·向内求心",text:"凡事向内自省，坚守本心良知，不随波逐流。"},{title:"隐藏天赋·本质洞察",text:"穿透纷繁表象，直达事物底层逻辑与人心。"},{title:"长期优势·精神自持",text:"哪怕身处逆境，内心信念依旧稳固。"}],real:"偏爱深度思考，不喜浅层应酬，重视精神共鸣，习惯在独处中自省，坚守内心准则。",risk:[{title:"人格盲点",text:"思虑过深，容易陷入精神内耗。"},{title:"成长短板",text:"很难向他人敞开全部内心世界。"},{title:"优化建议",text:"知行合一，不要只停留在思考，落地行动。"}],lines:"知行合一，致良知。心外无物，心外无理。此心光明，亦复何言。"},
+    {mbti:"INTJ",name:"曹操",subTitle:"雄略战略型 · 魏武大帝",tags:"谋略,远见,冷静,果决",match:96,quote:"夫英雄者，胸怀大志，腹有良谋。",self:"雄才战略型人格，擅长长远布局，理性冷静，目标感极强。擅长推演局势，洞悉人心，不受世俗道德束缚，以全局目标为先，意志坚韧。",ability:{决断:96,共情:42,开创:94,洞察:92,表达:80,经营:86,independent:94,担当:90},base:[{title:"核心底色·全局谋策",text:"擅长长远布局，预判局势，目标坚定。"},{title:"隐藏天赋·破局眼光",text:"敢于打破旧格局，抓住时代机遇。"},{title:"长期优势·强大意志",text:"屡败屡战，逆境之中依旧保持冷静。"}],real:"目标驱动，不喜无效社交，喜欢深度推演局势，做事果决，愿意为长远目标舍弃短期得失。",risk:[{title:"人格盲点",text:"理性凌驾人情，容易忽视他人情绪。"},{title:"成长短板",text:"多疑，很难完全信任他人。"},{title:"优化建议",text:"谋略之外保留一份包容，信任也是力量。"}],lines:"夫英雄者，胸怀大志，腹有良谋。老骥伏枥，志在千里。宁教我负天下人，休教天下人负我。"},
+    {mbti:"ISTP",name:"鲁班",subTitle:"巧思实干型 · 工匠祖师",tags:"灵巧,冷静,动手,应变",match:90,quote:"观物而制器，遇事而解困。",self:"灵巧务实的实操人格，动手能力出众，擅长拆解实物解决难题。冷静理性，临场应变强，不爱空谈理论，享受动手创造、解决现实问题的乐趣。",ability:{决断:78,共情:46,开创:76,洞察:76,表达:52,经营:64,independent:92,担当:70},base:[{title:"核心底色·动手求解",text:"遇到问题优先动手试验，用实操寻找答案。"},{title:"隐藏天赋·拆解重构",text:"擅长拆解复杂事物，改良创造新器物。"},{title:"长期优势·临场应变",text:"突发难题可以快速找到可行方案。"}],real:"讨厌空洞说教，喜欢动手实践，不爱繁琐复杂的人情往来，专注于技术、实物与问题本身。",risk:[{title:"人格盲点",text:"专注眼前难题，缺少长期宏观规划。"},{title:"成长短板",text:"不擅长表达内心感受，容易显得冷漠。"},{title:"优化建议",text:"专注实操之余，适当规划长远发展方向。"}],lines:"观物而制器，遇事而解困。巧思源于观察，成就来自实操。不尚虚言，以技成事。"},
+    {mbti:"ISFP",name:"王维",subTitle:"山水诗画型 · 诗佛",tags:"清雅,审美,自由,温润",match:91,quote:"行到水穷处，坐看云起时。",self:"清雅诗意的感知人格，感官细腻，审美极高，热爱自然与艺术。遵从内心感受，不喜争斗喧嚣，追求自在平和，擅长感受世间细微美好。",ability:{决断:52,共情:86,开创:74,洞察:78,表达:70,经营:52,independent:84,担当:60},base:[{title:"核心底色·随心清雅",text:"遵从本心感受，向往安静自在，不喜纷争。"},{title:"隐藏天赋·美学感知",text:"对景色、音律、文字拥有天生审美力。"},{title:"长期优势·情绪自愈",text:"善于从自然与艺术中获得内心安宁。"}],real:"偏爱安静松弛的环境，反感激烈冲突，享受独处，追求内心平和，不喜欢功利的争夺。",risk:[{title:"人格盲点",text:"遇到矛盾习惯回避，不愿正面抗争。"},{title:"成长短板",text:"缺少长远规划，容易随遇而安。"},{title:"优化建议",text:"保留诗意本心，必要时敢于主动争取。"}],lines:"行到水穷处，坐看云起时。明月松间照，清泉石上流。诗中有画，画中有诗。"},
+    {mbti:"INFP",name:"陶渊明",subTitle:"隐逸理想型 · 田园诗宗",tags:"纯粹,理想,敏感,诗意",match:93,quote:"采菊东篱下，悠然见南山。",self:"纯粹理想的隐逸人格，内心柔软敏感，坚守精神理想，厌恶世俗虚伪。向往本真自由，看重内心安宁，不愿为世俗名利扭曲本心。",ability:{决断:44,共情:90,开创:80,洞察:88,表达:84,经营:40,independent:86,担当:50},base:[{title:"核心底色·守真向隐",text:"坚守内心价值，不愿为名利妥协本心。"},{title:"隐藏天赋·诗意共情",text:"能感知万物情绪，文字自带温柔力量。"},{title:"长期优势·本心不改",text:"无论境遇如何，守住内心的纯粹。"}],real:"厌倦虚伪应酬，向往简单自在的生活，重视精神自由，对世俗功名利禄看得很淡。",risk:[{title:"人格盲点",text:"理想与现实落差大，容易陷入失落内耗。"},{title:"成长短板",text:"面对现实生存压力容易无力。"},{title:"优化建议",text:"守护理想，同时学会接纳现实的平凡。"}],lines:"采菊东篱下，悠然见南山。不为五斗米折腰。久在樊笼里，复得返自然。"},
+    {mbti:"INTP",name:"老子",subTitle:"道学思辨型 · 道家始祖",tags:"思辨,求知,抽象,淡然",match:92,quote:"道可道，非常道。",self:"抽象思辨的探索人格，天生热爱思考底层规律，好奇心无穷。喜欢独立推演理论，看淡世俗纷争，擅长跳出世俗视角审视万物。",ability:{决断:50,共情:44,开创:90,洞察:94,表达:72,经营:38,independent:92,担当:48},base:[{title:"核心底色·穷理探源",text:"喜欢思考世界底层规律，探寻事物本源。"},{title:"隐藏天赋·抽象推演",text:"擅长跳出表象，从全局抽象思考问题。"},{title:"长期优势·开放思辨",text:"不固守成见，包容多元观点。"}],real:"喜欢独自沉思，对人情应酬兴趣不高，偏爱抽象理论，对重复琐碎实务缺乏耐心。",risk:[{title:"人格盲点",text:"沉浸理论思考，落地行动力偏弱。"},{title:"成长短板",text:"对世俗人情规则缺少兴趣。"},{title:"优化建议",text:"思考大道之余，也要躬身落地，体验现实生活。"}],lines:"道可道，非常道。上善若水，水善利万物而不争。知人者智，自知者明。"},
+    {mbti:"ESTJ",name:"商鞅",subTitle:"法度改革型 · 法家名臣",tags:"果决,秩序,务实,强执行力",match:91,quote:"治世不一道，便国不法古。",self:"法度秩序型人格，崇尚规则，看重效率，执行力极强。做事黑白分明，目标导向，擅长搭建制度，敢下决断，为达成目标坚定推进。",ability:{决断:92,共情:40,开创:78,洞察:74,表达:78,经营:92,independent:84,担当:94},base:[{title:"核心底色·以法立序",text:"推崇规则秩序，做事讲求效率与结果。"},{title:"隐藏天赋·制度搭建",text:"擅长建立体系，规范集体行为。"},{title:"长期优势·果决推进",text:"一旦定下目标，强力执行不拖延。"}],real:"喜欢清晰规则，讨厌混乱无序，做事直来直去，追求结果，不喜欢人情干扰判断。",risk:[{title:"人格盲点",text:"重规则结果，容易忽略人情温度。"},{title:"成长短板",text:"强硬，难以接纳柔性变通方案。"},{title:"优化建议",text:"坚守法度，适当兼顾人情，懂得刚柔并济。"}],lines:"治世不一道，便国不法古。有功则赏，有罪则刑。以法为纲，以实干兴邦。"},
+    {mbti:"ESFJ",name:"刘备",subTitle:"仁德聚人型 · 蜀汉先主",tags:"仁德,共情,凝聚,宽厚",match:90,quote:"勿以善小而不为，勿以恶小而为之。",self:"仁德聚人的共情人格，擅长体察人心，待人宽厚，依靠真诚凝聚他人。重视情义与集体和睦，善于共情他人，愿意体恤身边人的难处。",ability:{决断:70,共情:92,开创:58,洞察:74,表达:82,经营:86,independent:64,担当:88},base:[{title:"核心底色·仁德待人",text:"以情义待人，体恤他人，重视人心凝聚。"},{title:"隐藏天赋·共情聚势",text:"善于感知他人诉求，凝聚人心。"},{title:"长期优势·宽厚包容",text:"待人宽厚，愿意包容身边人的缺点。"}],real:"看重情义，善于维系人际关系，体恤下属，愿意照顾身边人的感受，追求团队和睦。",risk:[{title:"人格盲点",text:"太重人情，容易因感情影响理性判断。"},{title:"成长短板",text:"害怕冲突，难以狠心做出冷酷抉择。"},{title:"优化建议",text:"保留仁德，重大抉择时保持理性权衡。"}],lines:"勿以善小而不为，勿以恶小而为之。夫济大事必以人为本。同心同德，共赴前路。"},
+    {mbti:"ENFJ",name:"范仲淹",subTitle:"家国感召型 · 北宋名相",tags:"格局,共情,理想,感召",match:93,quote:"先天下之忧而忧，后天下之乐而乐。",self:"心怀家国的感召人格，理想崇高，善于鼓舞人心，拥有强大人格感染力。心怀大义，体恤众生，愿意为理想奔走，带动身边人共赴大义。",ability:{决断:84,共情:90,开创:80,洞察:86,表达:88,经营:76,independent:82,担当:92},base:[{title:"核心底色·心怀大义",text:"心怀理想，以天下为己任，追求更高价值。"},{title:"隐藏天赋·人心感召",text:"言语有力量，可以鼓舞众人坚守信念。"},{title:"长期优势·坚守本心",text:"逆境之中不改理想，坚守道义。"}],real:"心怀宏大理想，重视道义，乐于激励他人，追求精神价值，不只着眼个人得失。",risk:[{title:"人格盲点",text:"对他人道德期待过高，容易失望。"},{title:"成长短板",text:"容易过度消耗自己，承担过多责任。"},{title:"优化建议",text:"心怀天下，也要懂得爱惜自身精力。"}],lines:"先天下之忧而忧，后天下之乐而乐。不以物喜，不以己悲。居庙堂之高则忧其民，处江湖之远则忧其君。"},
+    {mbti:"ENTJ",name:"嬴政",subTitle:"帝王宏图型 · 始皇帝",tags:"雄主,魄力,远见,统筹",match:97,quote:"海内为郡县，法令由一统。",self:"宏图霸主人格，天生统帅，格局宏大，魄力无双。擅长顶层战略规划，目标坚定，敢于破旧立新，拥有极强组织统筹能力，不惧挑战。",ability:{决断:98,共情:38,开创:96,洞察:88,表达:84,经营:94,independent:96,担当:98},base:[{title:"核心底色·一统宏图",text:"心怀宏大目标，敢于破旧立新，推动变革。"},{title:"隐藏天赋·顶层统筹",text:"擅长搭建宏大体系，调动庞大力量完成目标。"},{title:"长期优势·超强魄力",text:"不惧巨大阻力，敢于承担巨大风险。"}],real:"目标至上，热爱宏大挑战，喜欢掌控全局，行事果断，不喜欢拖沓与无意义争论。",risk:[{title:"人格盲点",text:"追求宏大目标，忽视个体感受。"},{title:"成长短板",text:"极度强势，难以接纳反对声音。"},{title:"优化建议",text:"宏图伟业，亦需体察人心，刚柔相济。"}],lines:"海内为郡县，法令由一统。朕为始皇帝，后世以计数。六合之内，皇帝之土。"},
+    {mbti:"ESTP",name:"项羽",subTitle:"勇烈枭雄型 · 西楚霸王",tags:"勇猛,果敢,临场,热血",match:90,quote:"力拔山兮气盖世。",self:"勇烈果敢的现实行动人格，爆发力强，临场应变出众，敢闯敢战。观察力敏锐，擅长抓住眼前战机，行动力拉满，自带热血豪迈气质。",ability:{决断:88,共情:62,开创:82,洞察:80,表达:82,经营:72,independent:90,担当:76},base:[{title:"核心底色·勇烈行动",text:"相信亲身实战，敢闯敢拼，临场爆发力强。"},{title:"隐藏天赋·临场决断",text:"危机时刻反应迅速，擅长抓住当下机会。"},{title:"长期优势·豪迈果敢",text:"行事坦荡，拥有强大魄力。"}],real:"热爱直面挑战，讨厌冗长空谈，临场反应极强，喜欢热血直接的博弈，不擅长长久隐忍布局。",risk:[{title:"人格盲点",text:"重视眼前胜负，缺少长远战略考量。"},{title:"成长短板",text:"自尊心极强，难以接受失败。"},{title:"优化建议",text:"保留勇武，学会隐忍，兼顾长远大局。"}],lines:"力拔山兮气盖世。此天之亡我，非战之罪也。富贵不归故乡，如衣绣夜行。"},
+    {mbti:"ESFP",name:"苏轼",subTitle:"乐天旷达型 · 东坡居士",tags:"旷达,鲜活,热爱,乐天",match:92,quote:"竹杖芒鞋轻胜马，谁怕？一蓑烟雨任平生。",self:"旷达鲜活的体验人格，生命力旺盛，热爱人间烟火，乐观自愈。善于感受生活美好，感染力强，无论境遇起落，依旧保有热爱生活的本心。",ability:{决断:64,共情:88,开创:76,洞察:74,表达:90,经营:72,independent:76,担当:68},base:[{title:"核心底色·人间旷达",text:"热爱世间万物，顺逆皆可坦然接纳，享受生活。"},{title:"隐藏天赋·氛围感染力",text:"自带乐观气场，能感染身边人走出低落。"},{title:"长期优势·强大自愈",text:"遭遇挫折，依旧可以快速调整心态。"}],real:"热爱美食、诗文、山水，享受人间烟火，性格开朗，随遇而安，讨厌压抑沉闷。",risk:[{title:"人格盲点",text:"活在当下，较少对未来做长远风险预判。"},{title:"成长短板",text:"不喜枯燥压抑的长期苦役。"},{title:"优化建议",text:"保持旷达，同时做好基础长远规划。"}],lines:"竹杖芒鞋轻胜马，谁怕？一蓑烟雨任平生。但愿人长久，千里共婵娟。人生到处知何似，应似飞鸿踏雪泥。"},
+    {mbti:"ENFP",name:"李白",subTitle:"浪漫狂想型 · 诗仙",tags:"浪漫,热烈,自由,想象力",match:94,quote:"仰天大笑出门去，我辈岂是蓬蒿人。",self:"浪漫自由的追梦人格，想象力磅礴，热情奔放，永远向往远方。讨厌束缚，灵感源源不断，热爱一切浪漫与宏大的可能性，精神世界肆意飞扬。",ability:{决断:62,共情:86,开创:94,洞察:82,表达:96,经营:54,independent:84,担当:64},base:[{title:"核心底色·浪漫自由",text:"向往无拘无束，厌恶世俗枷锁，追逐理想。"},{title:"隐藏天赋·灵感迸发",text:"想象力磅礴，创意源源不断。"},{title:"长期优势·热忱不灭",text:"永远保有对世界的好奇与浪漫。"}],real:"热爱山川与自由，讨厌刻板规矩，灵感丰富，向往宏大浪漫，不喜欢一成不变枯燥日常。",risk:[{title:"人格盲点",text:"理想宏大，容易忽略现实落地的艰难。"},{title:"成长短板",text:"很难长期坚持枯燥重复的事务。"},{title:"优化建议",text:"守住浪漫本心，也要学会脚踏实地。"}],lines:"仰天大笑出门去，我辈岂是蓬蒿人。长风破浪会有时，直挂云帆济沧海。天生我材必有用，千金散尽还复来。"},
+    {mbti:"ENTP",name:"苏秦",subTitle:"纵横思辨型 · 战国纵横家",tags:"善辩,机敏,求新,博弈",match:89,quote:"此一时，彼一时也。",self:"机敏善辩的纵横思辨人格，思维灵活，善于多角度博弈，热爱思想交锋。擅长洞察人心，随机应变，敢于挑战固有观点，擅长游说与破局。",ability:{决断:76,共情:60,开创:92,洞察:88,表达:94,经营:60,independent:88,担当:62},base:[{title:"核心底色·纵横博弈",text:"擅长多角度思辨，乐于博弈，寻找破局思路。"},{title:"隐藏天赋·游说洞察",text:"读懂对方诉求，灵活调整沟通策略。"},{title:"长期优势·思维求新",text:"不固守单一思路，快速切换方案。"}],real:"喜欢思想辩论，乐于拆解固有观点，享受博弈的乐趣，讨厌死板不变的规则。",risk:[{title:"人格盲点",text:"享受博弈辩论，容易忽略承诺与长期稳定。"},{title:"成长短板",text:"兴趣广泛，容易频繁更换目标。"},{title:"优化建议",text:"善用思辨，选定目标后坚持深耕落地。"}],lines:"此一时，彼一时也。穷则变，变则通。一人之辩，重于九鼎之宝。"},
+  ];
+
+  // 页面元素
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => document.querySelectorAll(sel);
+
+  const pagePwd = $("#page-pwd");
+  const pageIntro = $("#page-intro");
+  const pageQuiz = $("#page-quiz");
+  const pageResult = $("#page-result");
+  const genderMask = $("#genderMask");
+  const matchModal = $("#matchModal");
+  const pwdInput = $("#pwdInput");
+  const pwdUnlockBtn = $("#pwdUnlockBtn");
+  const pwdErr = $("#pwdErr");
+  const topStatus = $("#topStatus");
+  const startTestBtn = $("#startTestBtn");
+  const howMatchBtn = $("#howMatchBtn");
+  const questionText = $("#questionText");
+  const optionsBox = $("#optionsBox");
+  const quizIndex = $("#quizIndex");
+  const quizProgress = $("#quizProgress");
+  const prevBtn = $("#prevBtn");
+  const nextSubmitBtn = $("#nextSubmitBtn");
+  const retestBtn = $("#retestBtn");
+  const shareResultBtn = $("#shareResultBtn");
+  const toast = $("#toast");
+  const modalBar = $("#modalBar");
+
+  // 切换页面
+  function showPage(pageEl) {
+    $$(".page").forEach(p => p.classList.remove("active"));
+    pageEl.classList.add("active");
+  }
+
+  // Toast提示
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(()=>toast.classList.remove("show"), 2200);
+  }
+
+  // 密码解锁
+  pwdUnlockBtn.onclick = function(){
+    const val = pwdInput.value.trim();
+    if(val === PASSWORD){
+      pwdUnlocked = true;
+      pwdErr.classList.remove("show");
+      topStatus.textContent = "已解锁档案库";
+      showPage(pageIntro);
+    }else{
+      pwdErr.classList.add("show");
+      setTimeout(()=>pwdErr.classList.remove("show"),1800);
+    }
+  };
+  pwdInput.oninput = function(){
+    pwdErr.classList.remove("show");
+  }
+
+  // 性别选择按钮
+  $$(".gender-btn").forEach(btn=>{
+    btn.onclick = function(){
+      userGender = this.dataset.gender;
+      genderMask.classList.remove("show");
+      startQuiz();
+    }
+  })
+
+  // 打开匹配原理弹窗
+  howMatchBtn.onclick = function(){
+    matchModal.classList.add("show");
+    modalBar.style.width = "0%";
+    setTimeout(()=>modalBar.style.width="100%", 50);
+  }
+  matchModal.onclick = function(e){
+    if(e.target === matchModal) matchModal.classList.remove("show");
+  }
+
+  // 开始测试按钮
+  startTestBtn.onclick = function(){
+    genderMask.classList.add("show");
+  }
+
+  // 启动答题
+  function startQuiz(){
+    answers = Array(36).fill(null);
+    currentQIndex = 0;
+    renderQuestion();
+    showPage(pageQuiz);
+  }
+
+  //渲染题目
+  function renderQuestion(){
+    const q = questions[currentQIndex];
+    questionText.textContent = q.q;
+    quizIndex.textContent = `${currentQIndex+1} / 36`;
+    quizProgress.style.width = ((currentQIndex+1)/36*100)+"%";
+    optionsBox.innerHTML = "";
+
+    q.opts.forEach((optStr, idx)=>{
+      const div = document.createElement("div");
+      div.className = "option";
+      if(answers[currentQIndex] === idx) div.classList.add("selected");
+      div.innerHTML = `<div class="option-text">${optStr}</div>`;
+      div.onclick = ()=>{
+        answers[currentQIndex] = idx;
+        $$(".option").forEach(o=>o.classList.remove("selected"));
+        div.classList.add("selected");
+        clearTimeout(autoJumpTimer);
+        autoJumpTimer = setTimeout(()=>goNext(), 600);
+      }
+      optionsBox.appendChild(div);
+    })
+
+    prevBtn.disabled = currentQIndex === 0;
+    if(currentQIndex === 35){
+      nextSubmitBtn.textContent = "查看结果";
+    }else{
+      nextSubmitBtn.textContent = "下一题";
+    }
+  }
+
+  function goNext(){
+    clearTimeout(autoJumpTimer);
+    if(answers[currentQIndex] === null){
+      showToast("请选择一项答案");
+      return;
+    }
+    if(currentQIndex < 35){
+      currentQIndex++;
+      renderQuestion();
+    }else{
+      calcResult();
+      showPage(pageResult);
+    }
+  }
+  nextSubmitBtn.onclick = goNext;
+  prevBtn.onclick = function(){
+    if(currentQIndex > 0){
+      currentQIndex--;
+      renderQuestion();
+    }
+  }
+
+  // 计分匹配算法
+  function calcResult(){
+    // 维度计分 E/I S/N T/F J/P
+    let E=0,I=0,S=0,N=0,T=0,F=0,J=0,P=0;
+    for(let i=0;i<36;i++){
+      const ans = answers[i];
+      if(ans === null) continue;
+      const scoreMap = [0,1,2,3];
+      const s = scoreMap[ans];
+      if(i<9){
+        //I/E 0:I++,1:I+,2:E+,3:E++
+        I += (3-s);
+        E += s;
+      }else if(i<18){
+        //S/N
+        S += (3-s);
+        N += s;
+      }else if(i<27){
+        //T/F
+        T += (3-s);
+        F += s;
+      }else{
+        //J/P
+        J += (3-s);
+        P += s;
+      }
+    }
+    let mbti = "";
+    mbti += (I>E) ? "I" : "E";
+    mbti += (S>N) ? "S" : "N";
+    mbti += (T>F) ? "T" : "F";
+    mbti += (J>P) ? "J" : "P";
+
+    let personPool = userGender === "male" ? malePersonList : femalePersonList;
+    const targetPerson = personPool.find(p=>p.mbti === mbti);
+    fillReport(targetPerson);
+  }
+
+  //填充报告页面
+  function fillReport(person){
+    $("#matchPercent").innerText = person.match + "%";
+    $("#personName").innerText = person.name;
+    $("#personSub").innerText = person.subTitle;
+    $("#tagGroup").innerHTML = person.tags.split(',').map(t=>`<span class="result-tag">${t.trim()}</span>`).join("");
+    $("#quoteText").innerText = person.quote;
+    $("#selfPortrait").innerText = person.self;
+
+    //能力条
+    const abWrap = $("#abilityWrap");
+    abWrap.innerHTML = "";
+    const abData = person.ability;
+    const abList = [
+      {k:"决断",v:abData.决断},
+      {k:"共情",v:abData.共情},
+      {k:"开创",v:abData.开创},
+      {k:"洞察",v:abData.洞察},
+      {k:"表达",v:abData.表达},
+      {k:"经营",v:abData.经营},
+      {k:"独立",v:abData.independent},
+      {k:"担当",v:abData.担当},
+    ]
+    abList.forEach(item=>{
+      const div = document.createElement("div");
+      div.className = "ability-item";
+      div.innerHTML = `
+        <div class="ability-name">${item.k}</div>
+        <div class="ability-track"><div class="ability-bar" style="width:${item.v}%"></div></div>
+        <div class="ability-score">${item.v}</div>
+      `
+      abWrap.appendChild(div);
+    })
+
+    //核心底色
+    const baseWrap = $("#baseColorWrap");
+    baseWrap.innerHTML = "";
+    person.base.forEach(b=>{
+      const div = document.createElement("div");
+      div.className = "side-card";
+      div.innerHTML = `<h4>${b.title}</h4><p>${b.text}</p>`;
+      baseWrap.appendChild(div);
+    })
+    $("#realYou").innerText = person.real;
+
+    //盲点成长
+    const riskWrap = $("#riskWrap");
+    riskWrap.innerHTML = "";
+    person.risk.forEach(r=>{
+      const div = document.createElement("div");
+      div.className = "side-card";
+      div.innerHTML = `<h4>${r.title}</h4><p>${r.text}</p>`;
+      riskWrap.appendChild(div);
+    })
+
+    //人物台词列表
+    const quoteListWrap = $("#quoteListWrap");
+    quoteListWrap.innerHTML = "";
+    const lineArr = person.lines.split("。").filter(s => s.trim());
+    lineArr.forEach(line=>{
+      const div = document.createElement("div");
+      div.className = "side-card";
+      div.innerHTML = `<p style="font-style:italic">${line}</p>`;
+      quoteListWrap.appendChild(div);
+    })
+  }
+
+  //重新测试
+  retestBtn.onclick = function(){
+    answers = Array(36).fill(null);
+    currentQIndex = 0;
+    showPage(pageIntro);
+  }
+
+  //保存截图（模拟）
+  shareResultBtn.onclick = function(){
+    showToast("图片已保存到相册");
+  }
+
+  //点击空白关闭弹窗
+  matchModal.addEventListener('click', function(e) {
+    if (e.target === matchModal) {
+      matchModal.classList.remove('show');
+    }
+  })
+})();
+</script>
+</body>
+</html>
